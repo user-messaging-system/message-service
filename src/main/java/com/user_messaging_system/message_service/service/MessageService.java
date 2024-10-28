@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface MessageService {
     void sendMessage(MessageSendInput messageSendInput);
-    List<MessageDto> getMessagesBetweenUsers(String senderId, String receiverId);
+    List<MessageDto> getMessagesBetweenUsers(String jwtToken, String senderId, String receiverId);
+    void deleteById(String jwtToken, String id);
 }
