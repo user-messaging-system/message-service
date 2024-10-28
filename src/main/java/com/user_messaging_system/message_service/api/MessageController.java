@@ -20,19 +20,26 @@ public class MessageController {
 
     @GetMapping("/conversations/{senderId}/{receiverId}")
     public ResponseEntity<List<MessageGetOutput>> getMessagesBetweenUsers(
+            @RequestHeader("Authorization") String jwtToken,
             @PathVariable String senderId,
             @PathVariable String receiverId
     ){
-
         List<MessageGetOutput> response = MessageMapper.INSTANCE.messageDtoListToMessageGetOutputList(
-                messageService.getMessagesBetweenUsers(senderId, receiverId)
+                messageService.getMessagesBetweenUsers(jwtToken, senderId, receiverId)
         );
-
         return ResponseEntity.ok((response));
     }
 
     @PostMapping
     public void sendMessage(@RequestBody MessageSendInput messageSendInput){
         messageService.sendMessage(messageSendInput);
+    }
+
+    @DeleteMapping("/{messageId}")
+    public ResponseEntity<Void> deleteById(
+            @RequestHeader("Authorization") String jwtToken,
+            @PathVariable String id
+    ){
+        return null;
     }
 }
