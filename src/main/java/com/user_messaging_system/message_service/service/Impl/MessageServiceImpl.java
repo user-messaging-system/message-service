@@ -1,6 +1,7 @@
 package com.user_messaging_system.message_service.service.Impl;
 
 import com.user_messaging_system.core_library.exception.UserNotFoundException;
+import com.user_messaging_system.core_library.service.JWTService;
 import com.user_messaging_system.message_service.api.input.MessageSendInput;
 import com.user_messaging_system.message_service.configuration.RabbitMQConfig;
 import com.user_messaging_system.message_service.dto.MessageDto;
@@ -19,12 +20,12 @@ import java.util.List;
 public class MessageServiceImpl implements MessageService {
     private final MessageProducer messageProducer;
     private final MessageRepository messageRepository;
-    private final JWTServiceImpl jwtService;
+    private final JWTService jwtService;
 
     public MessageServiceImpl(
             MessageProducer webSocketMessageProducer,
             MessageRepository messageRepository,
-            JWTServiceImpl jwtService
+            JWTService jwtService
     ) {
         this.messageProducer = webSocketMessageProducer;
         this.messageRepository = messageRepository;
@@ -33,8 +34,8 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public List<MessageDto> getMessagesBetweenUsers(String jwtToken, String senderId, String receiverId){
-        String id = jwtService.extractUserId(jwtToken);
-        validateUserIsAuthorizedForConversation(id, senderId, receiverId);
+        String id = validateTokenAndExctractUserId(jwtToken);
+        validateUserAccessToConversation(id, senderId, receiverId);
         List<Message> messageList = messageRepository.getMessagesBetweenUsers(senderId, receiverId);
         return MessageMapper.INSTANCE.messageListToMessageDtoList(messageList);
     }
@@ -68,20 +69,22 @@ public class MessageServiceImpl implements MessageService {
                 .orElseThrow(() -> new EntityNotFoundException("Message Not Found"));
     }
 
-    private void validateUserIsAuthorizedForConversation(String currentUserId, String senderId, String receiverId){
+    private void validateUserAccessToConversation(String currentUserId, String senderId, String receiverId){
         if(currentUserId.equals(senderId) || currentUserId.equals(receiverId)){
             return;
-        }else{
-            throw new UserNotFoundException("Current user is not authorized to access this conversation.");
         }
+        throw new UserNotFoundException("Current user is not authorized to access this conversation.");
     }
 
     //TODO: Mesaji silme yetkisi olmadigi zaman hata mesajini duzenle
     private void validateUserIsSender(String userId, String senderId){
         if(userId.equals(senderId)){
             return;
-        }else{
-            throw new UserNotFoundException("Error delete message");
         }
+        throw new UserNotFoundException("Error delete message");
+    }
+
+    private String validateTokenAndExctractUserId(String jwtToken){
+        return jwtService.extractUserId(jwtToken.substring(7));
     }
 }
