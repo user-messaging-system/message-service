@@ -1,13 +1,19 @@
 package com.user_messaging_system.message_service.api.input;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class MessageSendInput implements Serializable{
     private static final long serialVersionUID = 1L;
     private final String senderId;
     private final String receiverId;
     private final String content;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime receiveTimestamp;
 
     public MessageSendInput(String senderId, String receiverId, String content){
