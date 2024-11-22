@@ -64,6 +64,12 @@ public class MessageServiceImpl implements MessageService {
         messageRepository.delete(message);
     }
 
+    @Override
+    public MessageDto updateMessageById(String id, String jwtToken){
+        String token = jwtService.extractToken(jwtToken);
+        return null;
+    }
+
     private Message findMessageById(String id){
         return messageRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Message Not Found"));

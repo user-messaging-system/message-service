@@ -1,6 +1,7 @@
 package com.user_messaging_system.message_service.api;
 
 import com.user_messaging_system.message_service.api.input.MessageSendInput;
+import com.user_messaging_system.message_service.api.input.MessageUpdateInput;
 import com.user_messaging_system.message_service.api.output.MessageGetOutput;
 import com.user_messaging_system.message_service.mapper.MessageMapper;
 import com.user_messaging_system.message_service.service.MessageService;
@@ -33,6 +34,15 @@ public class MessageController {
     @PostMapping
     public void sendMessage(@RequestBody MessageSendInput messageSendInput){
         messageService.sendMessage(messageSendInput);
+    }
+
+    @PutMapping("{id}")
+    public ResponseEntity<?> updateMessage(
+            @PathVariable String id,
+            @RequestHeader("Authorization") String jwtToken,
+            @RequestBody MessageUpdateInput messageUpdateInput
+            ){
+        return ResponseEntity.status(null).body(null);
     }
 
     @DeleteMapping("/{messageId}")

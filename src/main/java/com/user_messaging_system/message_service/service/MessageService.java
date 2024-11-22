@@ -9,4 +9,5 @@ public interface MessageService {
     void sendMessage(MessageSendInput messageSendInput);
     List<MessageDto> getMessagesBetweenUsers(String jwtToken, String senderId, String receiverId);
     void deleteById(String jwtToken, String id);
+    MessageDto updateMessageById(String id, String jwtToken);
 }
