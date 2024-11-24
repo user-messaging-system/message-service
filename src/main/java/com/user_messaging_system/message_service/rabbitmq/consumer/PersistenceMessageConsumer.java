@@ -16,7 +16,6 @@ public class PersistenceMessageConsumer {
 
     @RabbitListener(queues = "message-persistence-queue")
     public void receiveMessage(MessageSendInput messageSendInput){
-        //System.out.println("Received message from RabbitMQ PersistenceMessageConsumer: " + messageSendInput.getContent());
         Message message = new Message();
         message.setSenderId(messageSendInput.getSenderId());
         message.setReceiverId(messageSendInput.getReceiverId());
