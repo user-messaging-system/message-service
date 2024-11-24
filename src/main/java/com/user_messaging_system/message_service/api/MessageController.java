@@ -54,22 +54,19 @@ public class MessageController {
     ){
         SuccessResponse<MessageUpdateOutput> response = new SuccessResponse.Builder<MessageUpdateOutput>()
             .message(MESSAGE_SUCCESSFULLY_UPDATED_MESSAGE)
-            .data(
-                    MessageMapper.INSTANCE.messageDtoToMessageUpdateOutput(
-                        messageService.updateMessageById(messageId, jwtToken, messageUpdateInput)
-                    )
-            )
+            .data(MessageMapper.INSTANCE.messageDtoToMessageUpdateOutput(
+                    messageService.updateMessageById(messageId, jwtToken, messageUpdateInput)
+            ))
             .status(HttpStatus.OK.toString())
             .build();
-
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{messageId}")
-    public ResponseEntity<Void> deleteById(
+    public void deleteById(
             @RequestHeader("Authorization") String jwtToken,
             @PathVariable(name = "messageId") String messageId
     ){
-        return null;
+        messageService.deleteById(messageId, jwtToken);
     }
 }
