@@ -1,40 +1,50 @@
 package com.user_messaging_system.message_service.service.Impl;
 
+import com.user_messaging_system.core_library.exception.UnauthorizedException;
 import com.user_messaging_system.core_library.exception.UserNotFoundException;
+import com.user_messaging_system.core_library.response.SuccessResponse;
 import com.user_messaging_system.core_library.service.JWTService;
 import com.user_messaging_system.message_service.api.input.MessageSendInput;
+import com.user_messaging_system.message_service.api.input.MessageUpdateInput;
+import com.user_messaging_system.message_service.api.output.UserGetOutput;
+import com.user_messaging_system.message_service.client.UserClient;
 import com.user_messaging_system.message_service.configuration.RabbitMQConfig;
 import com.user_messaging_system.message_service.dto.MessageDto;
+import com.user_messaging_system.message_service.exception.MessageNotFoundException;
 import com.user_messaging_system.message_service.mapper.MessageMapper;
 import com.user_messaging_system.message_service.model.Message;
 import com.user_messaging_system.message_service.rabbitmq.producer.MessageProducer;
 import com.user_messaging_system.message_service.repository.MessageRepository;
 import com.user_messaging_system.message_service.service.MessageService;
-import jakarta.persistence.EntityNotFoundException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MessageServiceImpl implements MessageService {
     private final MessageProducer messageProducer;
+    private final UserClient userClient;
     private final MessageRepository messageRepository;
     private final JWTService jwtService;
 
     public MessageServiceImpl(
             MessageProducer webSocketMessageProducer,
             MessageRepository messageRepository,
-            JWTService jwtService
+            JWTService jwtService,
+            UserClient userClient
     ) {
         this.messageProducer = webSocketMessageProducer;
         this.messageRepository = messageRepository;
         this.jwtService = jwtService;
+        this.userClient = userClient;
     }
 
     @Override
     public List<MessageDto> getMessagesBetweenUsers(String jwtToken, String senderId, String receiverId){
-        String id = validateTokenAndExctractUserId(jwtToken);
+        String id = validateTokenAndExtractUserId(jwtToken);
         validateUserAccessToConversation(id, senderId, receiverId);
         List<Message> messageList = messageRepository.getMessagesBetweenUsers(senderId, receiverId);
         return MessageMapper.INSTANCE.messageListToMessageDtoList(messageList);
@@ -65,14 +75,21 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public MessageDto updateMessageById(String id, String jwtToken){
+    public MessageDto updateMessageById(String messageId, String jwtToken, MessageUpdateInput messageUpdateInput){
         String token = jwtService.extractToken(jwtToken);
-        return null;
+        jwtService.validateToken(token);
+        String userId = jwtService.extractUserId(token);
+        ResponseEntity<SuccessResponse<UserGetOutput>> userGetOutputResponseEntity = userClient.getById(userId);
+        UserGetOutput userGetOutput = valiteUserGetOutput(userGetOutputResponseEntity);
+        validateUserAuthorizedUpdateMessageById(userId, userGetOutput);
+        Message message = findMessageById(messageId);
+        message.setContent(messageUpdateInput.content());
+        return MessageMapper.INSTANCE.messageToMessageDto(messageRepository.save(message));
     }
 
     private Message findMessageById(String id){
         return messageRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Message Not Found"));
+                .orElseThrow(() -> new MessageNotFoundException("Message Not Found"));
     }
 
     private void validateUserAccessToConversation(String currentUserId, String senderId, String receiverId){
@@ -90,7 +107,20 @@ public class MessageServiceImpl implements MessageService {
         throw new UserNotFoundException("Error delete message");
     }
 
-    private String validateTokenAndExctractUserId(String jwtToken){
+    private String validateTokenAndExtractUserId(String jwtToken){
         return jwtService.extractUserId(jwtToken.substring(7));
+    }
+
+    private UserGetOutput valiteUserGetOutput(ResponseEntity<SuccessResponse<UserGetOutput>> userGetOutputResponseEntity){
+        return Optional.ofNullable(userGetOutputResponseEntity)
+                .map(ResponseEntity::getBody)
+                .map(SuccessResponse::getData)
+                .orElseThrow(() -> new UserNotFoundException("User not found or data is null"));
+    }
+
+    private void validateUserAuthorizedUpdateMessageById(String senderId, UserGetOutput userGetOutput){
+        if(!senderId.equals(userGetOutput.id())){
+            throw new UnauthorizedException("User is not authorized to update this message");
+        }
     }
 }

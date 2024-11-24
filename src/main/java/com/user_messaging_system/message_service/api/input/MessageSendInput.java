@@ -12,8 +12,6 @@ public class MessageSendInput implements Serializable{
     private final String senderId;
     private final String receiverId;
     private final String content;
-
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime receiveTimestamp;
 
     public MessageSendInput(String senderId, String receiverId, String content){
