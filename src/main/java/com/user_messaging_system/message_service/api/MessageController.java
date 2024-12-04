@@ -8,15 +8,16 @@ import com.user_messaging_system.message_service.api.output.MessageGetOutput;
 import com.user_messaging_system.message_service.api.output.MessageUpdateOutput;
 import com.user_messaging_system.message_service.mapper.MessageMapper;
 import com.user_messaging_system.message_service.service.MessageService;
+import static com.user_messaging_system.core_library.common.constant.APIConstant.*;
+import static com.user_messaging_system.core_library.common.constant.MessageConstant.*;
+import static com.user_messaging_system.core_library.common.constant.ValidationConstant.*;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import static com.user_messaging_system.core_library.common.constant.APIConstant.*;
-import static com.user_messaging_system.core_library.common.constant.MessageConstant.*;
-import static com.user_messaging_system.core_library.common.constant.ValidationConstant.*;
 
 @RestController
 @RequestMapping(MESSAGE_SERVICE_BASE_URL)
