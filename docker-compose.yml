@@ -1,0 +1,21 @@
+services:
+
+  message-service-db:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: message-service-db
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: plplpl123
+      MYSQL_DATABASE: message-service
+      MYSQL_USER: message-service
+      MYSQL_PASSWORD: plplpl123
+    ports:
+      - "3307:3306"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
